@@ -1,3 +1,5 @@
+-- Made by ally#0234 | Feminine on V3R
+
 _OHQXEJOAvWPtW04M, Protected_by_MoonSecV2, Discord = 'discord.gg/gQEH2uZxUk'
 
 
