@@ -11,6 +11,7 @@ default = {
     autofarm = false,
     mob = "",
 	autoquest = false,
+	teleport = false,
 	q = false,
 	z = false,
 	x = false,
@@ -38,7 +39,7 @@ local Quests = {
 	["Police"] = {"Gang Member", "15/15"},
 	["UA Student"] = {"Suspicious Character", "15/15"},
 	["Forest Beast"] = {"Twice", "15/15"},
-	["Pro Hero 1"] = {"Toga", "15/15"},
+	["Pro Hero"] = {"Toga", "15/15"},
 }
 
 if not isfile(FTS .. "/configs/config.json") then
@@ -177,8 +178,10 @@ function kill()
 		local target = acquiremob(getgenv().mob)
 		if target then
 			repeat
-				safeteleport(target.HumanoidRootPart.CFrame)
-				direction(game.Players.LocalPlayer.Character, target.HumanoidRootPart)
+				if not getgenv().teleport then
+					safeteleport(target.HumanoidRootPart.CFrame)
+					direction(game.Players.LocalPlayer.Character, target.HumanoidRootPart)
+				end
 				wait()
 				for key, bool in pairs(Settings) do
 					if string.len(key) == 1 and bool then
@@ -216,6 +219,11 @@ end)
 autofarm:Dropdown("Mob", GetMobs(), Settings.mob,"Dropdown", function(v)
     getgenv().mob = v
     Settings.mob = v
+    save()
+end)
+autofarm:Toggle("No Teleport", Settings.teleport, "Toggle",function(v)
+    getgenv().teleport = v
+    Settings.teleport = v
     save()
 end)
 
