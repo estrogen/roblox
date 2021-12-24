@@ -1,71 +1,63 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Boku No Roblox by ally#0234 | Feminine on V3R", "Midnight")
-local Main = Window:NewTab("Farming")
-local MainSection = Main:NewSection("Auto Farm")
-local Auto = Window:NewTab("Auto")
-local AutoSection = Auto:NewSection("Auto Stats")
-local Misc = Window:NewTab("Misc")
-local MiscSection = Misc:NewSection("Miscellaneous")
+-- Handle Loading and Config | Saw this on a release and decided to use htis since its much cleaner @ https://v3rmillion.net/showthread.php?tid=1149810
+FTS = "ZenLib - Boku No Roblox"
+local ZenLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/laderite/scripts/main/library.lua"))()
+ver = "1.0"
+local win = ZenLib:New({
+	Name = "Boku No Roblox - Zen X",
+	FolderToSave = FTS
+})
 
--- Configuration
-getgenv().SelectedEnemy = ""
-getgenv().xDistance = 30
-getgenv().zDistance = 0
-getgenv().Delay = 0.5
-getgenv().AutoFarm = false
-getgenv().AutoQuest = false
-getgenv().DisableTeleport = false
+default = {
+    autofarm = false,
+    mob = "",
+	autoquest = false,
+	q = false,
+	z = false,
+	x = false,
+	c = false,
+	v = false,
+	f = false,
+	e = false,
+	autostat = false,
+	strength = false,
+	agility = false,
+	durability = false,
+	stun = false,
+    version = ver,
+}
 
--- Quests
 local Quests = {
 	-- Defeat Villains
 	["Criminal"] = {"Injured Man", "15/15"},
 	["Weak Villain"] = {"Aizawa", "15/15"},
 	["Villain"] = {"Hero", "15/15"},
-	["Weak Nomu 1"] = {"Jeanist", "15/15"},
-	["Weak Nomu 2"] = {"Jeanist", "15/15"},
-	["Weak Nomu 3"] = {"Jeanist", "15/15"},
-	["Weak Nomu 4"] = {"Jeanist", "15/15"},
-	["High End 1"] = {"Mirko", "15/15"},
-	["High End 2"] = {"Mirko", "15/15"},
+	["Weak Nomu"] = {"Jeanist", "15/15"},
+	["High End"] = {"Mirko", "15/15"},
 
 	-- Defeat Heros
 	["Police"] = {"Gang Member", "15/15"},
 	["UA Student"] = {"Suspicious Character", "15/15"},
-	["UA Student 2"] = {"Suspicious Character", "15/15"},
-	["UA Student 3"] = {"Suspicious Character", "15/15"},
-	["UA Student 4"] = {"Suspicious Character", "15/15"},
-	["UA Student 5"] = {"Suspicious Character", "15/15"},
 	["Forest Beast"] = {"Twice", "15/15"},
 	["Pro Hero 1"] = {"Toga", "15/15"},
-	["Pro Hero 2"] = {"Toga", "15/15"},
-	["Pro Hero 3"] = {"Toga", "15/15"},
 }
 
--- Selected Abilities
-local Keys = {
-	Q = false,
-	Z = false,
-	X = false,
-	C = false,
-	V = false,
-	F = false,
-	E = false,
-}
+if not isfile(FTS .. "/configs/config.json") then
+    writefile(FTS .. "/configs/config.json", game:GetService("HttpService"):JSONEncode(default))
+end
+Settings = game:GetService("HttpService"):JSONDecode(readfile(FTS .. "/configs/config.json"))
+if Settings.version ~= ver then
+    delfile(FTS .. "/configs/config.json")
+    writefile(FTS .. "/configs/config.json", game:GetService("HttpService"):JSONEncode(default))
+end
+function save()
+    writefile(FTS .. "/configs/config.json", game:GetService("HttpService"):JSONEncode(Settings))
+end
 
--- Selected Auto Stats
-local Stats = {
-	Str = false,
-	Agi = false,
-	Dur = false,
-}
+local VirtualInputManager = game:GetService('VirtualInputManager')
 
--- Npc Storage
-local AllNPCS = {
-	Villains = {},
-	Heros = {},
-	All = {}
-}
+-- 
+
+-- Setup NPC List
 
 function contains(table, key)
     for _, value in pairs(table) do
@@ -74,31 +66,36 @@ function contains(table, key)
     return false
 end
 
--- Dynamically Get NPCS START
-
-for _, npc in pairs(game.Workspace.NPCs:GetChildren()) do
-	local fame = game.Workspace.NPCs[npc.Name].Fame.Value
-	if fame > 0 then
-		if not contains(AllNPCS.Heros, npc.Name) then
-			table.insert(AllNPCS.Heros, npc.Name)
-		end
-	else
-		if not contains(AllNPCS.Villains, npc.Name) then
-			table.insert(AllNPCS.Villains, npc.Name)
+function GetMobs()
+	local AllNPCS = {
+		Villains = {},
+		Heros = {},
+		All = {}
+	}
+	for _, npc in pairs(game.Workspace.NPCs:GetChildren()) do
+		local fame = game.Workspace.NPCs[npc.Name].Fame.Value
+		local name = npc.Name:gsub('[0-9\n]','')
+		if fame > 0 then
+			if not contains(AllNPCS.Heros, name) then
+				table.insert(AllNPCS.Heros, name)
+			end
+		else
+			if not contains(AllNPCS.Villains, name) then
+				table.insert(AllNPCS.Villains, name)
+			end
 		end
 	end
+	for _, v in pairs({"Villains", "Heros"}) do
+		table.insert(AllNPCS.All, "-- "..v.." --")
+		for _, npc in pairs(AllNPCS[v]) do
+			table.insert(AllNPCS.All, npc)
+		end
+	end
+	return AllNPCS.All
 end
+--
 
-for _, v in pairs({"Villains", "Heros"}) do
-    table.insert(AllNPCS.All, "-- "..v.." --")
-    for _, npc in pairs(AllNPCS[v]) do
-        table.insert(AllNPCS.All, npc)
-    end
-end
-
--- Dynamically Get NPCS END
-
--- Questing Functions START
+-- Useful Functions
 
 function AcceptQuest(args)
 	game.ReplicatedStorage.Remotes.Quest.AcceptQuest:FireServer(unpack(args))
@@ -112,13 +109,18 @@ function AbortQuest(args)
 	game.ReplicatedStorage.Remotes.Quest.CancelQuest:FireServer("CancelQuestScript")
 end
 
--- Questing Functions END
-
--- Auto Farm Functions START
-
 function GetCooldown(Key)
 	local cooldown = game.Players.LocalPlayer.PlayerGui.CooldownGui.Main[Key].Timer.Text
 	return (cooldown) and cooldown or "0.0s"
+end
+
+function safeteleport(Position)
+	game.Players.LocalPlayer.Character.Humanoid.Sit = true
+	repeat wait() until not game.Players.LocalPlayer:FindFirstChild("LastSpawned")
+	game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Position + Vector3.new(0, 1, 3)
+	wait(0.1)
+	game.Players.LocalPlayer.Character.Humanoid.Sit = false
+	wait(0.1)
 end
 
 function UseSkill(Key, Enemy)
@@ -138,117 +140,219 @@ function UseSkill(Key, Enemy)
 	wait(0.3)
 end
 
-function AutoFarm(NpcCFrame)
-	if not getgenv().DisableTeleport then
-		local EnemyPosition = Vector3.new(NpcCFrame.x, NpcCFrame.y, NpcCFrame.z)
-		local NewCFrame = CFrame.new(EnemyPosition + Vector3.new(getgenv().xDistance, 1, getgenv().zDistance), EnemyPosition)
-		local tween = game:GetService("TweenService"):Create(game.Players.LocalPlayer.Character.HumanoidRootPart, TweenInfo.new(getgenv().Delay), {CFrame = NewCFrame})
-		tween:Play()
-		tween.Completed:Wait(_)
-	end
-	for key, bool in pairs(Keys) do
-		if bool then
-			UseSkill(key, NpcCFrame)
+function blockac()
+	local eventbypass
+	eventbypass = hookmetamethod(game, "__namecall", function(self, ...)
+		local method = getnamecallmethod()
+
+		if not checkcaller() and self.Name == "ExploitKick" and method == "FireServer" then
+			return; -- do nothing if called
+		end
+
+		return eventbypass(self, ...)
+	end)
+end
+
+function direction(chr, target) -- found this func somewhere
+    if chr.PrimaryPart then 
+        local chrPos=chr.PrimaryPart.Position 
+        local tPos=target.Position 
+        local newCF=CFrame.new(chrPos,tPos) 
+        chr:SetPrimaryPartCFrame(newCF)
+    end
+end
+
+function acquiremob(mob)
+	for _, v in pairs(game:GetService("Workspace").NPCs:GetChildren()) do
+		local name = v.Name:gsub('[0-9\n]','')
+        if name == mob then
+            if v.Humanoid.Health ~= 0 then
+                target = v
+            end
+        end
+    end
+	return target
+end
+
+function kill()
+	if getgenv().autofarm then
+		local target = acquiremob(getgenv().mob)
+		if target then
+			repeat
+				safeteleport(target.HumanoidRootPart.CFrame)
+				direction(game.Players.LocalPlayer.Character, target.HumanoidRootPart)
+				wait()
+				for key, bool in pairs(Settings) do
+					if string.len(key) == 1 and bool then
+						UseSkill(string.upper(key), target.HumanoidRootPart.CFrame)
+					end
+				end
+			until target.Humanoid.Health == 0 or game.Players.LocalPlayer.Character.Humanoid.Health == 0
+			kill()
 		end
 	end
 end
 
--- Auto Farm Functions END
+--
 
--- Main Section START
+-- UI
 
-	-- Attack Methods START
+local farm = win:Tab("Farming")
+local autofarm = farm:Section("Auto Farm")
+local autoskill = farm:Section("Auto Skill")
+local misc = win:Tab("Misc")
+local autostat = misc:Section("Auto Stat")
+local other = misc:Section("Miscellaneous")
 
-	MainSection:NewToggle("Use Q", "Uses Q Skill", function(ref) Keys.Q = ref end)
-	MainSection:NewToggle("Use Z", "Uses Z Skill", function(ref) Keys.Z = ref end)
-	MainSection:NewToggle("Use X", "Uses X Skill", function(ref) Keys.X = ref end)
-	MainSection:NewToggle("Use C", "Uses C Skill", function(ref) Keys.C = ref end)
-	MainSection:NewToggle("Use V", "Uses V Skill", function(ref) Keys.V = ref end)
-	MainSection:NewToggle("Use F", "Uses F Skill", function(ref) Keys.F = ref end)
-	MainSection:NewToggle("Use Melee", "Uses equipped Melee weapon", function(ref) Keys.E = ref end)
+autofarm:Toggle("Auto Farm", Settings.autofarm, "Toggle",function(v)
+    getgenv().autofarm = v
+    Settings.autofarm = v
+    save()
+	kill()
+end)
+autofarm:Toggle("Auto Quest", Settings.autoquest, "Toggle",function(v)
+    getgenv().autoquest = v
+    Settings.autoquest = v
+    save()
+end)
+autofarm:Dropdown("Mob", GetMobs(), Settings.mob,"Dropdown", function(v)
+    getgenv().mob = v
+    Settings.mob = v
+    save()
+end)
 
-	-- Attack Methods END
+autoskill:Toggle("Q Skill", Settings.q, "Toggle",function(v)
+    getgenv().q = v
+    Settings.q = v
+    save()
+end)
+autoskill:Toggle("Z Skill", Settings.z, "Toggle",function(v)
+    getgenv().z = v
+    Settings.z = v
+    save()
+end)
+autoskill:Toggle("X Skill", Settings.x, "Toggle",function(v)
+    getgenv().x = v
+    Settings.x = v
+    save()
+end)
+autoskill:Toggle("C Skill", Settings.c, "Toggle",function(v)
+    getgenv().c = v
+    Settings.c = v
+    save()
+end)
+autoskill:Toggle("V Skill", Settings.v, "Toggle",function(v)
+    getgenv().v = v
+    Settings.v = v
+    save()
+end)
+autoskill:Toggle("F Skill", Settings.f, "Toggle",function(v)
+    getgenv().f = v
+    Settings.f = v
+    save()
+end)
+autoskill:Toggle("Melee", Settings.e, "Toggle",function(v)
+    getgenv().e = v
+    Settings.e = v
+    save()
+end)
 
-	-- Auto Farm Config START
+autostat:Toggle("Auto Stat", Settings.autostat, "Toggle",function(v)
+    getgenv().autostat = v
+    Settings.autostat = v
+    save()
+end)
+autostat:Toggle("Strength", Settings.strength, "Toggle",function(v)
+    getgenv().strength = v
+    Settings.strength = v
+    save()
+end)
+autostat:Toggle("Agility", Settings.agility, "Toggle",function(v)
+    getgenv().agility = v
+    Settings.agility = v
+    save()
+end)
+autostat:Toggle("Durability", Settings.durability, "Toggle",function(v)
+    getgenv().durability = v
+    Settings.durability = v
+    save()
+end)
 
-	MainSection:NewSlider("X Distance", "Distance from the Npc on X Axis", 250, 0, function(ref) getgenv().xDistance = ref end)
-	MainSection:NewSlider("Z Distance", "Distance from the Npc on Z Axis", 250, 0, function(ref) getgenv().zDistance = ref end)
-	MainSection:NewSlider("MS Delay", "How long it'll take to tween", 5000, 0, function(ref) getgenv().Delay = ref/1000 end)
-	MainSection:NewDropdown("Npcs", "All Npcs you can auto farm", AllNPCS.All, function(ref) getgenv().SelectedEnemy = ref end)
-	MainSection:NewToggle("Auto Quest", "Auto accepts Quests while Auto Farming", function(ref) getgenv().AutoQuest = ref end)
-	MainSection:NewToggle("Disable Teleport", "Disables Auto Farming teleporting.", function(ref) getgenv().DisableTeleport = ref end)
-	MainSection:NewToggle("Auto Farm", "Auto Farms using the choosen skills", function(ref)
-		getgenv().AutoFarm = ref
-		while wait() and getgenv().AutoFarm do
-			local Player = game.Players.LocalPlayer
-			if Player.Character ~= nil then
-				for _, npc in pairs(game.Workspace.NPCs:GetChildren()) do
-					spawn(function()
-						if npc.Name == getgenv().SelectedEnemy then
-							if npc ~= nil and npc.HumanoidRootPart ~= nil then
-								if getgenv().AutoQuest then
-									if Quests[getgenv().SelectedEnemy] then
-										local QuestObjective = Player.PlayerGui.QuestGui.QuestObjectives.NPCName.Text
-										local QuestProgress = Player.PlayerGui.QuestGui.QuestObjectives.KilledAmount.Text
-										if QuestProgress == Quests[getgenv().SelectedEnemy][2] then
-											CompleteQuest({[1] = Quests[getgenv().SelectedEnemy][1], [2] = "Quest"})
-										elseif QuestProgress == "" then
-											AcceptQuest({[1] = Quests[getgenv().SelectedEnemy][1], [2] = "Quest"})
-										elseif QuestObjective == "" then
-											AbortQuest()
-										end
-									end
-								end
+other:Toggle("Disable Stuns", Settings.stun, "Toggle",function(v)
+    getgenv().stun = v
+    Settings.stun = v
+    save()
+end)
 
-								AutoFarm(npc.HumanoidRootPart.CFrame)
-							end
-						end
-					end)
+--
+
+-- Cooldown Removal & Wait on Death
+
+game.Players.LocalPlayer.CharacterAdded:connect(function()
+	blockac()
+    wait(1)
+    kill()
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	if game:GetService("Players").LocalPlayer.Character then
+		if getgenv().stun then
+			for i, v in pairs(game:GetService("Players").LocalPlayer.Character:GetChildren()) do
+				if v.Name == "StunAnims" then
+					v:Destroy()
 				end
 			end
 		end
-	end)
-
-	-- Auto Farm Config END
-
--- Main Section END
-
--- Auto Section START
-
-AutoSection:NewToggle("Auto Strength", "Applies points into Strength Automatically", function(ref) Stats.Str = ref end)
-AutoSection:NewToggle("Auto Agility", "Applies points into Agility Automatically", function(ref) Stats.Agi = ref end)
-AutoSection:NewToggle("Auto Durability", "Applies points into Durability Automatically", function(ref) Stats.Dur = ref end)
-AutoSection:NewToggle("Auto Apply Stats", "Auto Apply Selected Stats", function(ref)
-	while wait() and ref do
-		spawn(function()
-			local points = tonumber(game.Players.LocalPlayer.PlayerGui.MainMenus.StatsPage.AvalPointsFrame.Points.Text)
-			if points > 0 then
-				if Stats.Str then
-					game.ReplicatedStorage.Remotes.Strength:FireServer(1)
-				end
-				if Stats.Agi then
-					game.ReplicatedStorage.Remotes.Agility:FireServer(1)
-				end
-				if Stats.Dur then
-					game.ReplicatedStorage.Remotes.Durability:FireServer(1)
-				end
-			end
-			wait(0.2)
-		end)
 	end
 end)
 
--- Auto Section END
+--
 
--- Misc Section START
+-- Auto Stat / Questing
 
-MiscSection:NewKeybind("Menu Key", "Key to open and close the menu", Enum.KeyCode.RightShift, function() Library:ToggleUI() end)
-MiscSection:NewTextBox("Spoof Nametag", "Name you want your nametag to spoof too", function(txt)
-	game.Workspace[game.Players.LocalPlayer.Name].Head.OverHead.OverheadBase.nametag.Text = txt
-end)
+coroutine.resume(coroutine.create(function()
+    while wait(0.3) do
+		local Player = game.Players.LocalPlayer
+        if getgenv().autoquest and Player.Character ~= nil then
+			if Quests[getgenv().mob] then
+				local QuestObjective = Player.PlayerGui.QuestGui.QuestObjectives.NPCName.Text
+				local QuestProgress = Player.PlayerGui.QuestGui.QuestObjectives.KilledAmount.Text
+				if QuestProgress == Quests[getgenv().mob][2] then
+					CompleteQuest({[1] = Quests[getgenv().mob][1], [2] = "Quest"})
+				elseif QuestProgress == "" then
+					AcceptQuest({[1] = Quests[getgenv().mob][1], [2] = "Quest"})
+				elseif QuestObjective == "" then
+					AbortQuest()
+				end
+			end
+		end
+    end
+end))
 
--- Misc Section END
+coroutine.resume(coroutine.create(function()
+    while wait(0.3) do
+        if getgenv().autostat then
+			local points = tonumber(game.Players.LocalPlayer.PlayerGui.MainMenus.StatsPage.AvalPointsFrame.Points.Text)
+			if points > 0 then
+				if getgenv().strength then
+					game.ReplicatedStorage.Remotes.Strength:FireServer(1)
+				end
+				if getgenv().agility then
+					game.ReplicatedStorage.Remotes.Agility:FireServer(1)
+				end
+				if getgenv().durability then
+					game.ReplicatedStorage.Remotes.Durability:FireServer(1)
+				end
+			end
+		end
+    end
+end))
 
--- Credits
-game.Workspace[game.Players.LocalPlayer.Name].Head.OverHead.OverheadBase.nametag.Text = "Boku No Roblox by ally"
-print("Boku No Roblox by ally")
+--
+
+for _,v in pairs(Settings) do
+    getgenv()[_] = v
+end
+
+kill()
+blockac()
