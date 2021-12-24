@@ -141,15 +141,13 @@ function UseSkill(Key, Enemy)
 end
 
 function blockac()
-	local eventbypass
-	eventbypass = hookmetamethod(game, "__namecall", function(self, ...)
-		local method = getnamecallmethod()
-
-		if not checkcaller() and self.Name == "ExploitKick" and method == "FireServer" then
-			return; -- do nothing if called
+	local oldnamecall
+	oldnamecall = hookmetamethod(game, "__namecall", function(self, ...)
+		local args = {...}
+		if getnamecallmethod() == "FireServer" and self.Name == "ExploitKick" then 
+			return
 		end
-
-		return eventbypass(self, ...)
+		return oldnamecall(self, ...)
 	end)
 end
 
