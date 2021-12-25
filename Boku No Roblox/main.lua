@@ -7,6 +7,8 @@ local win = ZenLib:New({
 	FolderToSave = FTS
 })
 
+getgenv().loaded = false
+
 default = {
     autofarm = false,
     mob = "",
@@ -166,6 +168,7 @@ function direction(chr, target) -- found this func somewhere
 end
 
 function acquiremob(mob)
+	local target
 	for _, v in pairs(game:GetService("Workspace").NPCs:GetChildren()) do
 		local name = v.Name:gsub('[0-9\n]','')
         if name == mob and v.Humanoid ~= nil and v then
@@ -178,9 +181,10 @@ function acquiremob(mob)
 end
 
 function kill()
-	if getgenv().autofarm then
+	while getgenv().autofarm and getgenv().loaded do
+		wait(0.1)
 		local target = acquiremob(getgenv().mob)
-		if target and target.Humanoid then
+		if target then
 			repeat
 				if not getgenv().teleport then
 					safeteleport(target.HumanoidRootPart.CFrame)
@@ -192,7 +196,8 @@ function kill()
 						UseSkill(string.upper(key), target.HumanoidRootPart.CFrame)
 					end
 				end
-			until target.Humanoid.Health == 0 or game.Players.LocalPlayer.Character.Humanoid.Health == 0
+				wait()
+			until target.Humanoid.Health == 0 or game.Players.LocalPlayer.Character.Humanoid.Health == 0 or not target:IsDescendantOf(game.Workspace.NPCs) or not target.HumanoidRootPart:IsDescendantOf(target)
 			kill()
 		end
 	end
@@ -213,9 +218,7 @@ autofarm:Toggle("Auto Farm", Settings.autofarm, "Toggle",function(v)
     getgenv().autofarm = v
     Settings.autofarm = v
     save()
-	if v then
-		kill()
-	end
+	kill()
 end)
 autofarm:Toggle("Auto Quest", Settings.autoquest, "Toggle",function(v)
     getgenv().autoquest = v
@@ -326,7 +329,10 @@ end)
 -- Cooldown Removal & Wait on Death
 
 game.Players.LocalPlayer.CharacterAdded:connect(function()
+	wait(1)
 	blockac()
+	wait(1)
+	kill()
 end)
 
 game:GetService("RunService").RenderStepped:Connect(function()
@@ -402,3 +408,5 @@ for _,v in pairs(Settings) do
 end
 
 blockac()
+kill()
+getgenv().loaded = true
