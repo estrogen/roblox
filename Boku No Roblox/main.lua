@@ -24,6 +24,8 @@ default = {
 	agility = false,
 	durability = false,
 	stun = false,
+	spin = false,
+	quirk = "",
     version = ver,
 }
 
@@ -189,8 +191,8 @@ function kill()
 					end
 				end
 			until target.Humanoid.Health == 0 or game.Players.LocalPlayer.Character.Humanoid.Health == 0
-			kill()
 		end
+		kill()
 	end
 end
 
@@ -290,6 +292,23 @@ other:Toggle("Disable Stuns", Settings.stun, "Toggle",function(v)
     save()
 end)
 
+other:Toggle("Disable Stuns", Settings.stun, "Toggle",function(v)
+    getgenv().stun = v
+    Settings.stun = v
+    save()
+end)
+
+other:Textbox("Wanted Quirk", false, function(v)
+	getgenv().quirk = v
+    Settings.quirk = v
+    save()
+end)
+
+other:Toggle("Auto Spin", Settings.spin, "Toggle",function(v)
+    getgenv().spin = v
+    Settings.spin = v
+    save()
+end)
 --
 
 -- Cooldown Removal & Wait on Death
@@ -350,6 +369,17 @@ coroutine.resume(coroutine.create(function()
 					game.ReplicatedStorage.Remotes.Durability:FireServer(1)
 				end
 			end
+		end
+    end
+end))
+
+coroutine.resume(coroutine.create(function()
+    while wait(0.5) do
+		local quirk = game.Players.LocalPlayer.PlayerGui.playerhud.playerstats.display.quirk.Text
+		local current = string.gsub(quirk, "Quirk: ", "")
+        if getgenv().spin and not string.find(current, getgenv().quirk) and getgenv().quirk ~= "" then
+			local args = {[1] = "Commons"}
+			workspace.S1c2R5i66p5t5s51.Spin.Spinner:InvokeServer(unpack(args))
 		end
     end
 end))
