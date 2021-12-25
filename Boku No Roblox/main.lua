@@ -292,12 +292,6 @@ other:Toggle("Disable Stuns", Settings.stun, "Toggle",function(v)
     save()
 end)
 
-other:Toggle("Disable Stuns", Settings.stun, "Toggle",function(v)
-    getgenv().stun = v
-    Settings.stun = v
-    save()
-end)
-
 other:Textbox("Wanted Quirk", false, function(v)
 	getgenv().quirk = v
     Settings.quirk = v
