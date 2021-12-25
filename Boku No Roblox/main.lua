@@ -193,8 +193,8 @@ function kill()
 					end
 				end
 			until target.Humanoid.Health == 0 or game.Players.LocalPlayer.Character.Humanoid.Health == 0
+			kill()
 		end
-		kill()
 	end
 end
 
