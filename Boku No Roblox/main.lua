@@ -213,7 +213,9 @@ autofarm:Toggle("Auto Farm", Settings.autofarm, "Toggle",function(v)
     getgenv().autofarm = v
     Settings.autofarm = v
     save()
-	kill()
+	if v then
+		kill()
+	end
 end)
 autofarm:Toggle("Auto Quest", Settings.autoquest, "Toggle",function(v)
     getgenv().autoquest = v
@@ -401,5 +403,4 @@ for _,v in pairs(Settings) do
     getgenv()[_] = v
 end
 
-kill()
 blockac()
