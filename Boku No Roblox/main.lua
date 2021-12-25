@@ -180,7 +180,7 @@ end
 function kill()
 	if getgenv().autofarm then
 		local target = acquiremob(getgenv().mob)
-		if target then
+		if target and target.Humanoid then
 			repeat
 				if not getgenv().teleport then
 					safeteleport(target.HumanoidRootPart.CFrame)
@@ -327,8 +327,6 @@ end)
 
 game.Players.LocalPlayer.CharacterAdded:connect(function()
 	blockac()
-    wait(1)
-    kill()
 end)
 
 game:GetService("RunService").RenderStepped:Connect(function()
