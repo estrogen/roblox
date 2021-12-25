@@ -26,6 +26,8 @@ default = {
 	stun = false,
 	spin = false,
 	quirk = "",
+	speed = 16,
+	jump = 50,
     version = ver,
 }
 
@@ -34,14 +36,14 @@ local Quests = {
 	["Criminal"] = {"Injured Man", "15/15"},
 	["Weak Villain"] = {"Aizawa", "15/15"},
 	["Villain"] = {"Hero", "15/15"},
-	["Weak Nomu"] = {"Jeanist", "15/15"},
-	["High End"] = {"Mirko", "15/15"},
+	["Weak Nomu "] = {"Jeanist", "15/15"},
+	["High End "] = {"Mirko", "15/15"},
 
 	-- Defeat Heros
 	["Police"] = {"Gang Member", "15/15"},
-	["UA Student"] = {"Suspicious Character", "15/15"},
+	["UA Student "] = {"Suspicious Character", "15/15"},
 	["Forest Beast"] = {"Twice", "15/15"},
-	["Pro Hero"] = {"Toga", "15/15"},
+	["Pro Her o"] = {"Toga", "15/15"},
 }
 
 if not isfile(FTS .. "/configs/config.json") then
@@ -166,7 +168,7 @@ end
 function acquiremob(mob)
 	for _, v in pairs(game:GetService("Workspace").NPCs:GetChildren()) do
 		local name = v.Name:gsub('[0-9\n]','')
-        if name == mob then
+        if name == mob and v.Humanoid ~= nil and v then
             if v.Humanoid.Health ~= 0 then
                 target = v
             end
@@ -303,6 +305,20 @@ other:Toggle("Auto Spin", Settings.spin, "Toggle",function(v)
     Settings.spin = v
     save()
 end)
+
+other:Slider("Walk Speed", 16, 500, 17, 1, "Slider", function(v)
+	getgenv().speed = v
+    Settings.speed = v
+    save()
+	game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
+end)
+
+other:Slider("Jump Power", 50, 500, 51, 1, "Slider", function(v)
+	getgenv().jump = v
+    Settings.jump = v
+    save()
+	game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
+end)
 --
 
 -- Cooldown Removal & Wait on Death
@@ -333,6 +349,7 @@ coroutine.resume(coroutine.create(function()
     while wait(0.3) do
 		local Player = game.Players.LocalPlayer
         if getgenv().autoquest and Player.Character ~= nil then
+			print(getgenv().mob, Quests[getgenv().mob])
 			if Quests[getgenv().mob] then
 				local QuestObjective = Player.PlayerGui.QuestGui.QuestObjectives.NPCName.Text
 				local QuestProgress = Player.PlayerGui.QuestGui.QuestObjectives.KilledAmount.Text
