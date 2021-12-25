@@ -185,19 +185,26 @@ function kill()
 		wait(0.1)
 		local target = acquiremob(getgenv().mob)
 		if target then
-			repeat
-				if not getgenv().teleport then
-					safeteleport(target.HumanoidRootPart.CFrame)
-					direction(game.Players.LocalPlayer.Character, target.HumanoidRootPart)
-				end
-				wait()
-				for key, bool in pairs(Settings) do
-					if string.len(key) == 1 and bool then
-						UseSkill(string.upper(key), target.HumanoidRootPart.CFrame)
+			for _, v in pairs(game:GetService("Workspace").NPCs:GetChildren()) do
+				local name = v.Name:gsub('[0-9\n]','')
+				if name == mob and v.Humanoid ~= nil and v then
+					if v.Humanoid.Health ~= 0 then
+						repeat
+							if not getgenv().teleport then
+								safeteleport(v.HumanoidRootPart.CFrame)
+								direction(game.Players.LocalPlayer.Character, v.HumanoidRootPart)
+							end
+							wait()
+							for key, bool in pairs(Settings) do
+								if string.len(key) == 1 and bool then
+									UseSkill(string.upper(key), v.HumanoidRootPart.CFrame)
+								end
+							end
+							wait()
+						until v.Humanoid.Health == 0 or game.Players.LocalPlayer.Character.Humanoid.Health == 0 or not v:IsDescendantOf(game.Workspace.NPCs) or not v.HumanoidRootPart:IsDescendantOf(v)
 					end
 				end
-				wait()
-			until target.Humanoid.Health == 0 or game.Players.LocalPlayer.Character.Humanoid.Health == 0 or not target:IsDescendantOf(game.Workspace.NPCs) or not target.HumanoidRootPart:IsDescendantOf(target)
+			end
 			kill()
 		end
 	end
