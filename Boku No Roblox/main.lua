@@ -43,7 +43,7 @@ local Quests = {
 	["Police"] = {"Gang Member", "15/15"},
 	["UA Student "] = {"Suspicious Character", "15/15"},
 	["Forest Beast"] = {"Twice", "15/15"},
-	["Pro Her o"] = {"Toga", "15/15"},
+	["Pro Hero "] = {"Toga", "15/15"},
 }
 
 if not isfile(FTS .. "/configs/config.json") then
